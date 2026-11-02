@@ -359,7 +359,7 @@ function sheetMov(tipo){const t=tasaEn(hoy());
   <div class="f"><label for="m-concepto">Concepto</label><input id="m-concepto" required autocomplete="off" placeholder="Ej. sueldo maestra, alquiler, meriendas"></div>
   <div class="f" id="m-cat-f"><label for="m-cat">Categoría</label><select id="m-cat">${CATS.map(c=>opt(c,c,'')).join('')}</select></div>
   <div class="two"><div class="f"><label for="m-monto" id="m-monto-l">Monto en $</label><input id="m-monto" type="number" inputmode="decimal" step="0.01" required></div>
-  <div class="f" id="m-tasa-f"><label for="m-tasa">Tasa euro BCV</label><input id="m-tasa" type="number" inputmode="decimal" min="0.0001" step="0.0001" value="${t?t.valor:''}"></div></div>
+  <div class="f" id="m-tasa-f"><label for="m-tasa">Tasa euro BCV</label><input id="m-tasa" type="number" inputmode="decimal" min="0.0001" step="any" value="${t?t.valor:''}"></div></div>
   <p class="wait" id="m-hint" style="margin:0"></p>
   <div class="f"><label for="m-nota">Nota</label><input id="m-nota" autocomplete="off" placeholder="Opcional"></div>
   <div id="m-err"></div><button class="btn" type="submit">Guardar</button></form>`);movUI()}
@@ -468,7 +468,7 @@ function sheetPago(ninoId){const act=inscritos().slice().sort((a,b)=>String(a.no
   <div class="f"><label for="p-fecha">Fecha del pago</label><input id="p-fecha" type="date" required value="${hoy()}"></div></div>
   <div class="f"><label for="p-met">Forma de pago</label><select id="p-met">${METODOS.map(([x,c])=>opt(x,`${x} (${c==='BS'?'Bs':'$'})`,'Zelle')).join('')}</select></div>
   <div class="two"><div class="f"><label for="p-monto" id="p-monto-l">Monto en $</label><input id="p-monto" type="number" inputmode="decimal" min="0.01" step="0.01" required></div>
-  <div class="f" id="p-tasa-f"><label for="p-tasa">Tasa euro BCV</label><input id="p-tasa" type="number" inputmode="decimal" min="0.0001" step="0.0001"></div></div>
+  <div class="f" id="p-tasa-f"><label for="p-tasa">Tasa euro BCV</label><input id="p-tasa" type="number" inputmode="decimal" min="0.0001" step="any"></div></div>
   <div class="equiv" id="p-equiv"></div>
   <div class="f"><label for="p-ref">Referencia</label><input id="p-ref" autocomplete="off" placeholder="Número de confirmación (opcional)"></div>
   <div class="f"><label for="p-nota">Nota</label><input id="p-nota" autocomplete="off" placeholder="Opcional"></div>
@@ -489,7 +489,7 @@ function sheetTasa(){const t=tasaUlt();
   <p class="wait" style="margin:0">La app trae sola la tasa oficial del euro desde la página del BCV, cada hora. Se usa para convertir a dólares los pagos en bolívares. Si la página del BCV falla, puedes escribirla a mano.</p>
   ${S.canWrite?'<button class="btn sun" type="button" data-act="traerTasa">Traer del BCV ahora</button>':''}
   <div class="two"><div class="f"><label for="t-fecha">Fecha</label><input id="t-fecha" type="date" required value="${hoy()}"></div>
-  <div class="f"><label for="t-valor">Bs por 1 €</label><input id="t-valor" type="number" inputmode="decimal" min="0.0001" step="0.0001" required value="${t&&t.fecha===hoy()?t.valor:''}"></div></div>
+  <div class="f"><label for="t-valor">Bs por 1 €</label><input id="t-valor" type="number" inputmode="decimal" min="0.0001" step="any" required value="${t&&t.fecha===hoy()?t.valor:''}"></div></div>
   ${S.canWrite?'<button class="btn ghost" type="submit">Guardar tasa a mano</button>':''}
   ${S.tasas.length?`<h3 class="sec" style="margin:6px 0 0">Últimas tasas</h3><div class="list">${S.tasas.slice(0,10).map(x=>`<div class="row" style="cursor:default"><span class="row-main"><b>${fechaCorta(x.fecha)}</b></span><span class="row-end"><b class="num">${(+x.valor).toLocaleString('es-VE',{maximumFractionDigits:4})} Bs</b></span></div>`).join('')}</div>`:''}
   </form>`)}
