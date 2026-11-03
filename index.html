@@ -358,12 +358,12 @@ function sheetMov(tipo){const t=tasaEn(hoy());
   <div class="f"><label for="m-cuenta">Caja o cuenta</label><select id="m-cuenta">${CUENTAS.map(c=>opt(c.id,c.nombre,'efusd')).join('')}</select></div></div>
   <div class="f"><label for="m-concepto">Concepto</label><input id="m-concepto" required autocomplete="off" placeholder="Ej. sueldo maestra, alquiler, meriendas"></div>
   <div class="f" id="m-cat-f"><label for="m-cat">Categoría</label><select id="m-cat">${CATS.map(c=>opt(c,c,'')).join('')}</select></div>
-  <div class="two"><div class="f"><label for="m-monto" id="m-monto-l">Monto en $</label><input id="m-monto" type="number" inputmode="decimal" step="0.01" required></div>
-  <div class="f" id="m-tasa-f"><label for="m-tasa">Tasa euro BCV</label><input id="m-tasa" type="number" inputmode="decimal" min="0.0001" step="any" value="${t?t.valor:''}"></div></div>
+  <div class="two"><div class="f"><label for="m-monto" id="m-monto-l">Monto en $</label><input id="m-monto" type="text" inputmode="decimal" required></div>
+  <div class="f" id="m-tasa-f"><label for="m-tasa">Tasa euro BCV</label><input id="m-tasa" type="text" inputmode="decimal" value="${t?t.valor:''}"></div></div>
   <p class="wait" id="m-hint" style="margin:0"></p>
   <div class="f"><label for="m-nota">Nota</label><input id="m-nota" autocomplete="off" placeholder="Opcional"></div>
   <div id="m-err"></div><button class="btn" type="submit">Guardar</button></form>`);movUI()}
-function movUI(){const c=CUENTAS.find(x=>x.id===$('#m-cuenta').value),esBs=c.mon==='BS',tipo=$('#m-tipo').value,t=+$('#m-tasa').value,v=+$('#m-monto').value||0;
+function movUI(){const c=CUENTAS.find(x=>x.id===$('#m-cuenta').value),esBs=c.mon==='BS',tipo=$('#m-tipo').value,t=num('#m-tasa'),v=num('#m-monto')||0;
   $('#m-monto-l').textContent=esBs?'Monto en Bs':'Monto en $';$('#m-tasa-f').style.visibility=esBs?'visible':'hidden';$('#m-cat-f').hidden=tipo!=='gasto';
   $('#m-hint').textContent=tipo==='saldo'?'Usa el saldo inicial para cargar lo que ya hay en la caja. Para corregir, puedes poner un monto negativo.':esBs&&t&&v?`${bs(v)} = ${money(v/t)} a tasa euro BCV`:''}
 function sheetVerMov(id){const x=S.movs.find(m=>m.id===id);if(!x)return;
@@ -462,13 +462,13 @@ function sheetVer(id){const n=S.ninos.find(x=>x.id===id);if(!n)return;const m=me
 function sheetPago(ninoId){const act=inscritos().slice().sort((a,b)=>String(a.nombre).localeCompare(b.nombre,'es'));
   if(!act.length){toast('Primero inscribe a un niño.',true);return}
   const mes=S.tab==='pagos'?S.mes:mesHoy(),sel=ninoId||act[0].id,n=S.ninos.find(x=>x.id===sel);
-  openSheet(sheetHead('Registrar pago')+`<form id="fPago">
+  openSheet(sheetHead('Registrar pago')+`<form id="fPago" novalidate>
   <div class="f"><label for="p-nino">Niño</label><select id="p-nino">${act.map(x=>opt(x.id,x.nombre,sel)).join('')}</select></div>
   <div class="two"><div class="f"><label for="p-mes">Mes que paga</label><input id="p-mes" type="month" required value="${mes}"></div>
   <div class="f"><label for="p-fecha">Fecha del pago</label><input id="p-fecha" type="date" required value="${hoy()}"></div></div>
   <div class="f"><label for="p-met">Forma de pago</label><select id="p-met">${METODOS.map(([x,c])=>opt(x,`${x} (${c==='BS'?'Bs':'$'})`,'Zelle')).join('')}</select></div>
-  <div class="two"><div class="f"><label for="p-monto" id="p-monto-l">Monto en $</label><input id="p-monto" type="number" inputmode="decimal" min="0.01" step="0.01" required></div>
-  <div class="f" id="p-tasa-f"><label for="p-tasa">Tasa euro BCV</label><input id="p-tasa" type="number" inputmode="decimal" min="0.0001" step="any"></div></div>
+  <div class="two"><div class="f"><label for="p-monto" id="p-monto-l">Monto en $</label><input id="p-monto" type="text" inputmode="decimal" required></div>
+  <div class="f" id="p-tasa-f"><label for="p-tasa">Tasa euro BCV</label><input id="p-tasa" type="text" inputmode="decimal"></div></div>
   <div class="equiv" id="p-equiv"></div>
   <div class="f"><label for="p-ref">Referencia</label><input id="p-ref" autocomplete="off" placeholder="Número de confirmación (opcional)"></div>
   <div class="f"><label for="p-nota">Nota</label><input id="p-nota" autocomplete="off" placeholder="Opcional"></div>
@@ -476,10 +476,11 @@ function sheetPago(ninoId){const act=inscritos().slice().sort((a,b)=>String(a.no
   <div id="p-err"></div>
   <button class="btn" type="submit">Guardar pago</button></form>`);
   const t=tasaEn(hoy());if(t)$('#p-tasa').value=t.valor;llenarMonto();}
+function num(s){let v=String($(s)?.value||'').trim().replace(/\s|Bs|\$|€/gi,'');if(!v)return 0;const c=v.lastIndexOf(','),d=v.lastIndexOf('.');if(c>-1&&d>-1)v=c>d?v.replace(/\./g,'').replace(',','.'):v.replace(/,/g,'');else if(c>-1)v=v.split(',').length>2?v.replace(/,/g,''):v.replace(',','.');else if(v.split('.').length>2)v=v.replace(/\./g,'');const n=parseFloat(v);return isFinite(n)?n:0}
 const pMon=()=>monedaDe($('#p-met').value);
-function llenarMonto(){const n=S.ninos.find(x=>x.id===$('#p-nino').value),m=$('#p-mes').value;if(!n||!m)return;const f=estPago(n,m).falta,t=+$('#p-tasa').value;
-  $('#p-monto').value=!f?'':pMon()==='BS'?(t?(Math.round(f*t*100)/100):''):f;hintPago()}
-function hintPago(){const n=S.ninos.find(x=>x.id===$('#p-nino')?.value),m=$('#p-mes')?.value;if(!n||!m)return;const e=estPago(n,m),esBs=pMon()==='BS',t=+$('#p-tasa').value,v=+$('#p-monto').value||0;
+function llenarMonto(){const n=S.ninos.find(x=>x.id===$('#p-nino').value),m=$('#p-mes').value;if(!n||!m)return;const f=estPago(n,m).falta,t=num('#p-tasa');
+  $('#p-monto').value=!f?'':pMon()==='BS'?(t?(Math.round(f*t*100)/100):''):Math.round(f*100)/100;hintPago()}
+function hintPago(){const n=S.ninos.find(x=>x.id===$('#p-nino')?.value),m=$('#p-mes')?.value;if(!n||!m)return;const e=estPago(n,m),esBs=pMon()==='BS',t=num('#p-tasa'),v=num('#p-monto')||0;
   $('#p-monto-l').textContent=esBs?'Monto en Bs':'Monto en $';$('#p-tasa-f').style.visibility=esBs?'visible':'hidden';$('#p-tasa').required=esBs;
   $('#p-equiv').textContent=esBs?(t?`${bs(v)} ÷ ${t.toLocaleString('es-VE',{maximumFractionDigits:4})} = ${money(v/t)}`:'Escribe la tasa euro BCV del día del pago'):(t?`${money(v)} ≈ ${bs(v*t)} a tasa euro BCV`:money(v));
   $('#p-hint').textContent=`Mensualidad ${money(e.fee)} · ya pagó ${money(e.paid)} en ${mesLabel(m)} · falta ${money(e.falta)}${t&&e.falta?' ('+bs(e.falta*t)+')':''}`}
@@ -489,7 +490,7 @@ function sheetTasa(){const t=tasaUlt();
   <p class="wait" style="margin:0">La app trae sola la tasa oficial del euro desde la página del BCV, cada hora. Se usa para convertir a dólares los pagos en bolívares. Si la página del BCV falla, puedes escribirla a mano.</p>
   ${S.canWrite?'<button class="btn sun" type="button" data-act="traerTasa">Traer del BCV ahora</button>':''}
   <div class="two"><div class="f"><label for="t-fecha">Fecha</label><input id="t-fecha" type="date" required value="${hoy()}"></div>
-  <div class="f"><label for="t-valor">Bs por 1 €</label><input id="t-valor" type="number" inputmode="decimal" min="0.0001" step="any" required value="${t&&t.fecha===hoy()?t.valor:''}"></div></div>
+  <div class="f"><label for="t-valor">Bs por 1 €</label><input id="t-valor" type="text" inputmode="decimal" required value="${t&&t.fecha===hoy()?t.valor:''}"></div></div>
   ${S.canWrite?'<button class="btn ghost" type="submit">Guardar tasa a mano</button>':''}
   ${S.tasas.length?`<h3 class="sec" style="margin:6px 0 0">Últimas tasas</h3><div class="list">${S.tasas.slice(0,10).map(x=>`<div class="row" style="cursor:default"><span class="row-main"><b>${fechaCorta(x.fecha)}</b></span><span class="row-end"><b class="num">${(+x.valor).toLocaleString('es-VE',{maximumFractionDigits:4})} Bs</b></span></div>`).join('')}</div>`:''}
   </form>`)}
@@ -555,15 +556,15 @@ document.addEventListener('click',async e=>{const t=e.target.closest('[data-act]
 document.addEventListener('submit',e=>{e.preventDefault();const f=e.target;
   if(f.id==='fNino')saveNino(f,false);
   else if(f.id==='fAj')saveAjustes();
-  else if(f.id==='fMov'){const c=CUENTAS.find(x=>x.id===$('#m-cuenta').value),tipo=$('#m-tipo').value,orig=+$('#m-monto').value||0,t=+$('#m-tasa').value||0;
+  else if(f.id==='fMov'){const c=CUENTAS.find(x=>x.id===$('#m-cuenta').value),tipo=$('#m-tipo').value,orig=num('#m-monto')||0,t=num('#m-tasa')||0;
     if(!orig||(tipo!=='saldo'&&orig<0)){$('#m-err').innerHTML='<div class="alert bad">Escribe un monto mayor que cero.</div>';return}
     if(c.mon==='BS'&&!(t>0)){$('#m-err').innerHTML='<div class="alert bad">Falta la tasa euro BCV para convertir los bolívares.</div>';return}
     const d={tipo,fecha:$('#m-fecha').value,concepto:$('#m-concepto').value.trim(),categoria:tipo==='gasto'?$('#m-cat').value:'',cuenta:c.id,moneda:c.mon,montoOriginal:orig,tasa:t||null,monto:c.mon==='BS'?Math.round(orig/t*100)/100:orig,nota:$('#m-nota').value.trim()};
     write('guardarMov',d,tipo==='gasto'?'Gasto registrado':'Movimiento guardado').then(ok=>ok&&closeSheet())}
-  else if(f.id==='fTasa'){const fe=$('#t-fecha').value,v=+$('#t-valor').value;if(!fe||!(v>0))return;
+  else if(f.id==='fTasa'){const fe=$('#t-fecha').value,v=num('#t-valor');if(!fe||!(v>0))return;
     write('guardarTasa',{fecha:fe,valor:v},'Tasa guardada').then(ok=>ok&&closeSheet())}
-  else if(f.id==='fPago'){const mon=pMon(),orig=+$('#p-monto').value||0,t=+$('#p-tasa').value||0;
-    if(!orig||!$('#p-mes').value)return;
+  else if(f.id==='fPago'){const mon=pMon(),orig=num('#p-monto')||0,t=num('#p-tasa')||0;
+    const pe=m=>{$('#p-err').innerHTML=`<div class="alert bad">${m}</div>`};if(!$('#p-mes').value||!$('#p-fecha').value){pe('Falta el mes que paga o la fecha del pago.');return}if(!(orig>0)){pe('Escribe el monto del pago (ej. 150 o 150,50).');return}
     if(mon==='BS'&&!(t>0)){$('#p-err').innerHTML='<div class="alert bad">Falta la tasa euro BCV para convertir los bolívares.</div>';return}
     const d={ninoId:$('#p-nino').value,mes:$('#p-mes').value,fecha:$('#p-fecha').value,metodo:$('#p-met').value,moneda:mon,montoOriginal:orig,
       tasa:t||null,monto:mon==='BS'?Math.round(orig/t*100)/100:orig,referencia:$('#p-ref').value.trim(),nota:$('#p-nota').value.trim(),creado:hoy()};
